@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "Yin and Yang Technologies",
+    "slug": "yny-monorepo",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#09090b"
+    },
+    "extra": {
+      "supabaseUrl": "https://supabase.co",
+      "supabaseAnonKey": "https://kucstxhxxqktefnrsyeu.supabase.co/rest/v1/"
+    }
+  }
+}
+
