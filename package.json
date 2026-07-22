@@ -2,7 +2,8 @@
   "name": "yinyang-monorepo",
   "version": "1.0.0",
   "scripts": {
-    "start": "expo start --web"
+    "start": "expo start --web",
+    "build": "npx expo export"
   },
   "dependencies": {
     "expo": "~51.0.0",
@@ -15,7 +16,8 @@
   "private": true,
   "devDependencies": {
     "@babel/core": "^7.20.0",
-    "@expo/metro-runtime": "^57.0.2",
+    "@expo/metro-runtime": "~3.2.1",
     "@expo/webpack-config": "^19.0.1"
   }
 }
+
