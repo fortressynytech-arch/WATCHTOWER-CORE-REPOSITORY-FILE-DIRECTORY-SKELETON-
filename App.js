@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, TextInput, TouchableOpacity } from 'react-native';
+import GroceryList from './GroceryList';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState("WATCHTOWER");
@@ -84,6 +85,7 @@ export default function App() {
               <Text style={styles.statusText}>🔹 RECIPE FILTER LIMITS: SODIUM (1500mg) // POTASSIUM (2000mg) LOCKOUT MATRIX ENGAGED</Text>
               <Text style={styles.statusText}>⚖️ HOUSING ADVOCACY PERIMETER: IMMUTABLE CONTRACTOR & TENANT COURTROOM TIMESTAMPS ACTIVE</Text>
             </View>
+            <GroceryList />
           </View>
         )}
 
