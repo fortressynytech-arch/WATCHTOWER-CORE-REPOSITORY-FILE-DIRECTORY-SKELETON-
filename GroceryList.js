@@ -19,6 +19,28 @@ const ALLERGENS_KEY = 'eleanor_grocery_allergens_v1';
 const CUSTOM_ALLERGENS_KEY = 'eleanor_grocery_custom_allergens_v1';
 const DEFAULT_STORES = ['Walmart', "Sam's Club"];
 
+// A broad directory of well-known US grocery chains, so you can pick from a
+// list instead of typing every store name from scratch. Kroger is flagged
+// separately since it's the one chain with a real live-price integration —
+// everything else here is still priced by you, manually.
+const STORE_DIRECTORY = [
+  'Kroger', 'Ralphs', 'Fred Meyer', 'King Soopers', "Smith's", 'Fry\'s Food',
+  'QFC', 'Harris Teeter',
+  'Walmart', "Sam's Club", 'Costco', 'Target',
+  'Publix', 'Aldi', 'Lidl', 'Trader Joe\'s', 'Whole Foods Market',
+  'Meijer', 'Wegmans', 'H-E-B', 'Safeway', 'Albertsons', 'Vons',
+  'Jewel-Osco', 'Acme', "Shaw's", 'Star Market', 'Food Lion', 'Giant',
+  'Giant Eagle', 'Stop & Shop', 'ShopRite', 'Winn-Dixie',
+  'Sprouts Farmers Market', 'Save A Lot', 'Piggly Wiggly', 'WinCo Foods',
+  "Hy-Vee", 'Food City', 'IGA', 'Grocery Outlet', 'The Fresh Market',
+  'Market Basket', 'Price Chopper', 'Weis Markets', 'Food Bazaar',
+];
+
+const KROGER_FAMILY = [
+  'Kroger', 'Ralphs', 'Fred Meyer', 'King Soopers', "Smith's", 'Fry\'s Food',
+  'QFC', 'Harris Teeter',
+];
+
 // Common additive names that hide sodium, potassium, or phosphorus in
 // ingredient lists. This is a plain keyword match against text you paste in
 // — it does not judge whether a food is safe, just flags where these terms
@@ -154,6 +176,7 @@ export default function GroceryList() {
   const [newItemName, setNewItemName] = useState('');
   const [newItemTags, setNewItemTags] = useState('');
   const [newStoreName, setNewStoreName] = useState('');
+  const [storeSearchFilter, setStoreSearchFilter] = useState('');
   const [priceModalItem, setPriceModalItem] = useState(null);
   const [priceInputs, setPriceInputs] = useState({});
   const [tagFilter, setTagFilter] = useState('');
@@ -623,22 +646,62 @@ export default function GroceryList() {
             <Text style={styles.modalTitle}>Add a Store</Text>
             <TextInput
               style={styles.input}
-              placeholder="Store name (e.g. Kroger, Aldi)"
+              placeholder="Search stores or type your own..."
               placeholderTextColor="#888"
-              value={newStoreName}
-              onChangeText={setNewStoreName}
-              onSubmitEditing={addStore}
-              autoFocus
+              value={storeSearchFilter}
+              onChangeText={setStoreSearchFilter}
             />
+            <ScrollView style={{ maxHeight: 240, marginTop: 8 }}>
+              {STORE_DIRECTORY.filter(
+                (s) =>
+                  s.toLowerCase().includes(storeSearchFilter.trim().toLowerCase()) &&
+                  !stores.includes(s)
+              ).map((s) => (
+                <TouchableOpacity
+                  key={s}
+                  style={styles.storeDirectoryRow}
+                  onPress={() => {
+                    persistStores([...stores, s]);
+                    setStoreSearchFilter('');
+                    setShowAddStore(false);
+                  }}
+                >
+                  <Text style={styles.storeDirectoryText}>{s}</Text>
+                  {KROGER_FAMILY.includes(s) && (
+                    <Text style={styles.liveTag}>Live prices soon</Text>
+                  )}
+                </TouchableOpacity>
+              ))}
+              {storeSearchFilter.trim() &&
+                !STORE_DIRECTORY.some(
+                  (s) => s.toLowerCase() === storeSearchFilter.trim().toLowerCase()
+                ) && (
+                  <TouchableOpacity
+                    style={styles.storeDirectoryRow}
+                    onPress={() => {
+                      const name = storeSearchFilter.trim();
+                      if (name && !stores.includes(name)) {
+                        persistStores([...stores, name]);
+                      }
+                      setStoreSearchFilter('');
+                      setShowAddStore(false);
+                    }}
+                  >
+                    <Text style={styles.storeDirectoryText}>
+                      + Add "{storeSearchFilter.trim()}" as a new store
+                    </Text>
+                  </TouchableOpacity>
+                )}
+            </ScrollView>
             <View style={styles.modalButtonRow}>
               <TouchableOpacity
                 style={styles.modalCancel}
-                onPress={() => setShowAddStore(false)}
+                onPress={() => {
+                  setStoreSearchFilter('');
+                  setShowAddStore(false);
+                }}
               >
-                <Text style={styles.modalCancelText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalSave} onPress={addStore}>
-                <Text style={styles.modalSaveText}>Add</Text>
+                <Text style={styles.modalCancelText}>Close</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1048,6 +1111,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#18181b',
     padding: 10,
     borderRadius: 8,
+  },
+  storeDirectoryRow: {
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: '#27272a',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  storeDirectoryText: { color: '#fff', fontSize: 14 },
+  liveTag: {
+    color: '#2ee6a6',
+    fontSize: 10,
+    borderWidth: 1,
+    borderColor: '#2ee6a6',
+    borderRadius: 10,
+    paddingVertical: 2,
+    paddingHorizontal: 6,
   },
   ingredientInput: { height: 100, textAlignVertical: 'top' },
   scanClear: { color: '#2ee6a6', fontSize: 13 },
