@@ -1,13 +1,37 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, TextInput, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, ScrollView, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { supabase } from './supabaseClient';
+import AuthScreen from './AuthScreen';
 import GroceryList from './GroceryList';
 
 export default function App() {
+  const [session, setSession] = useState(null);
+  const [checkingSession, setCheckingSession] = useState(true);
   const [activeTab, setActiveTab] = useState("WATCHTOWER");
   const [inputText, setInputText] = useState("");
   const [consoleLog, setConsoleLog] = useState("⚡ COCKPIT SYSTEM STANDBY // PERIMETER SECURE");
 
   const appTabs = ["WATCHTOWER", "ABIGAIL", "ELEANOR", "PARLOR", "CIVIC_REGISTRY"];
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setCheckingSession(false);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setSession(null);
+  };
 
   const executePurgerAction = (actionType) => {
     setConsoleLog(`🧹 DAEMON STREAM: Initializing localized [${actionType}] macro...`);
@@ -31,10 +55,26 @@ export default function App() {
     }, 800);
   };
 
+  if (checkingSession) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator color="#00ffcc" size="large" />
+      </View>
+    );
+  }
+
+  if (!session) {
+    return <AuthScreen onAuthenticated={setSession} />;
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.glitchTitle}>YIN & YANG TECHNOLOGIES</Text>
       <Text style={styles.subtitleLine}>CONSOLIDATED ENTERPRISE WORKSPACE MESH // CHIEF ARCHITECT COCKPIT</Text>
+
+      <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
+        <Text style={styles.signOutText}>Sign Out</Text>
+      </TouchableOpacity>
 
       <View style={styles.navigationGrid}>
         <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} contentContainerStyle={styles.navScroll}>
@@ -131,8 +171,11 @@ export default function App() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#09090b', paddingTop: 50 },
+  loadingContainer: { flex: 1, backgroundColor: '#09090b', justifyContent: 'center', alignItems: 'center' },
   glitchTitle: { fontSize: 22, color: '#00ffcc', fontWeight: '900', letterSpacing: 2, textAlign: 'center', marginBottom: 4 },
-  subtitleLine: { fontSize: 10, color: '#a1a1aa', fontWeight: '700', letterSpacing: 1, textAlign: 'center', marginBottom: 25, paddingHorizontal: 20 },
+  subtitleLine: { fontSize: 10, color: '#a1a1aa', fontWeight: '700', letterSpacing: 1, textAlign: 'center', marginBottom: 15, paddingHorizontal: 20 },
+  signOutButton: { alignSelf: 'center', marginBottom: 15, paddingVertical: 6, paddingHorizontal: 14, borderRadius: 6, borderWidth: 1, borderColor: '#e63946' },
+  signOutText: { color: '#e63946', fontSize: 11, fontWeight: 'bold' },
   navigationGrid: { width: '100%', borderBottomWidth: 1, borderColor: '#222226', backgroundColor: '#111115' },
   navScroll: { paddingHorizontal: 15, paddingVertical: 12, gap: 10 },
   navTile: { backgroundColor: '#18181b', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 6, borderWidth: 1, borderColor: '#27272a' },
